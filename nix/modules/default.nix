@@ -9,7 +9,7 @@ let
     settingsFormat.generate "traefik-keymate.json" cfg.settings;
 in {
   options.services.traefik-keymate = {
-    enable = mkEnable ''
+    enable = mkEnableOption ''
       Enable the traefik-keymate service.
 
       It will parse it's configuration than write the proper required keys to etcd
