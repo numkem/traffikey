@@ -1,0 +1,20 @@
+{
+  "etcd": {
+    "endpoints": [
+      "http://172.31.99.4:2379",
+      "http://172.31.99.5:2379",
+      "http://172.31.99.3:2769"
+    ]
+  },
+  "targets": [
+    {
+      "name": "test",
+      "urls": [
+        "http://192.168.0.104:8080"
+      ],
+      "entrypoint": "web",
+      "prefix": "traefik",
+      "rule": "test.numkem.org"
+    }
+  ]
+}
