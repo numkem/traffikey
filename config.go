@@ -7,13 +7,19 @@ import (
 )
 
 type Config struct {
-	Targets []*Target   `json:"targets"`
-	Etcd    *EtcdConfig `json:"etcd"`
+	Targets []*Target      `json:"targets"`
+	Etcd    *etcdConfig    `json:"etcd"`
+	Traefik *traefikConfig `json:"traefik"`
 }
 
-type EtcdConfig struct {
+type etcdConfig struct {
 	Endpoints []string `json:"endpoints"`
 	SSL       bool     `json:"ssl"`
+}
+
+type traefikConfig struct {
+	DefaultPrefix     string `json:"default_prefix"`
+	DefaultEntrypoint string `json:"default_entrypoint"`
 }
 
 func NewConfig(filename string) (*Config, error) {

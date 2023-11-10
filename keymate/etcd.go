@@ -138,6 +138,13 @@ func (m *EtcdKeymateManager) ApplyConfig(ctx context.Context, cfg *traefikkeymat
 		}
 
 		// Validate the target's configuration
+		if target.Prefix == "" {
+			target.Prefix = cfg.Traefik.DefaultPrefix
+		}
+		if target.Entrypoint == "" {
+			target.Entrypoint = cfg.Traefik.DefaultEntrypoint
+		}
+
 		if err := validateTarget(target); err != nil {
 			errs = append(errs, err)
 			continue

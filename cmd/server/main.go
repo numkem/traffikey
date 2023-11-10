@@ -26,6 +26,15 @@ func main() {
 		log.Fatalf("Failed to read configuraiton: %v", err)
 	}
 
+	// Check if defaults are set
+	if cfg.Traefik.DefaultPrefix == "" {
+		log.Warn("default traefik prefix isn't set, this could cause errors")
+	}
+
+	if cfg.Traefik.DefaultEntrypoint == "" {
+		log.Warn("default Traefik entrypoint isn't set, this could cause errors")
+	}
+
 	// Create manager connection
 	mgr, err := keymate.NewEtcdManager(cfg)
 	if err != nil {
