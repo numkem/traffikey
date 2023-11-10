@@ -99,7 +99,7 @@ func (m *EtcdKeymateManager) writeTarget(ctx context.Context, target *traefikkey
 
 		// Check we have a scheme in the url to the server
 		if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-			log.Warnf("Server URL for target %s doesn't have a scheme, adding http", target.Name)
+			log.Warnf("server URL for target %s doesn't have a scheme, adding http", target.Name)
 			serverURL = fmt.Sprintf("http://%s", url)
 		}
 

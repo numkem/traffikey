@@ -29,7 +29,7 @@ func main() {
 	// Create manager connection
 	mgr, err := keymate.NewEtcdManager(cfg)
 	if err != nil {
-		log.Fatalf("Failed to create manager: %v", err)
+		log.Fatalf("failed to create manager: %v", err)
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
@@ -37,12 +37,12 @@ func main() {
 
 	errs := mgr.ApplyConfig(ctx, cfg)
 	for _, err := range errs {
-		log.Errorf("Error found while applying configuration: %v", err)
+		log.Errorf("error found while applying configuration: %v", err)
 	}
 
 	for _, err := range errs {
 		log.Error(err)
 	}
 
-	log.Info("Configuration applied. Exiting")
+	log.Info("configuration applied. Exiting")
 }
