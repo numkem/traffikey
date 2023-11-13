@@ -88,9 +88,9 @@ func valuesForMiddlewares(target *traefikkeymate.Target, middlewares []*traefikk
 
 func (m *EtcdKeymateManager) writeTarget(ctx context.Context, target *traefikkeymate.Target) error {
 	keys := etcdKeyValue{
-		fmt.Sprintf("%s/http/routers/%s/rule", target.Prefix, target.Name):       target.Rule,
-		fmt.Sprintf("%s/http/routers/%s/entypoints", target.Prefix, target.Name): target.Entrypoint,
-		fmt.Sprintf("%s/http/service/%s/service", target.Prefix, target.Name):    target.Name,
+		fmt.Sprintf("%s/http/routers/%s/entrypoints", target.Prefix, target.Name): target.Entrypoint,
+		fmt.Sprintf("%s/http/routers/%s/rule", target.Prefix, target.Name):        target.Rule,
+		fmt.Sprintf("%s/http/routers/%s/service", target.Prefix, target.Name):     target.Name,
 	}
 
 	// Set loadbalancing between the endpoints
