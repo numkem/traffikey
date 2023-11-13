@@ -3,35 +3,45 @@
 
   inputs = { nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable"; };
 
-  outputs = inputs@{ flake-parts, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [ inputs.flake-parts.flakeModules.easyOverlay ];
-      systems = [ "x86_64-linux" "aarch64-linux" ];
-      perSystem = { config, self', inputs', pkgs, system, ... }: {
-        # Per-system attributes can be defined here. The self' and inputs'
-        # module parameters provide easy access to attributes of the same
-        # system.
-        overlayAttrs = { inherit (config.packages) traefik-keymate; };
+  outputs = { self, nixpkgs }: rec {
+    packages.x86_64-linux = let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs { inherit system; };
+    in {
+      traefik-keymate = pkgs.buildGoModule {
+        pname = "traefik-keymate";
+        version = "0.1.0";
 
-        # Equivalent to  inputs'.nixpkgs.legacyPackages.hello;
-        packages.traefik-keymate = pkgs.buildGoModule {
-          pname = "traefik-keymate";
-          version = "0.1.0";
+        src = ./.;
 
-          src = ./.;
+        submodules = [ "server" ];
 
-          submodules = [ "server" ];
+        vendorHash = "sha256-9ksyoevxfieIZJE8EVdgTloEHf5HX0A2MqF+ZAvUc1U=";
 
-          vendorHash = "sha256-9ksyoevxfieIZJE8EVdgTloEHf5HX0A2MqF+ZAvUc1U=";
-
-          postInstall = ''
-            mv $out/bin/server $out/bin/traefik-keymate
-          '';
-        };
-
-        devShells.default =
-          pkgs.mkShell { buildInputs = with pkgs; [ etcd go gopls ]; };
+        postInstall = ''
+          mv $out/bin/server $out/bin/traefik-keymate
+        '';
       };
-      flake = { nixosModules.default = import ./nix/modules/default.nix; };
     };
+
+    devShells.x86_64-linux.default = let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs { inherit system; };
+    in pkgs.mkShell { buildInputs = with pkgs; [ etcd go gopls ]; };
+
+    overlays.default =
+      (final: prev: { inherit (packages.x86_64-linux) traefik-keymate; });
+
+    nixosConfigurations.test = let system = "x86_64-linux";
+    in nixpkgs.lib.nixosSystem rec {
+      inherit system;
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ overlays.default ];
+      };
+      modules = [ nixosModules.default ./nix/configuration-test.nix ];
+    };
+
+    nixosModules.default = import ./nix/modules/default.nix;
+  };
 }
