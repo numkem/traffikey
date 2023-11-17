@@ -16,6 +16,7 @@ type etcdKeyValue map[string]string
 
 type EtcdKeymateManager struct {
 	client *etcd.Client
+	cfg    *traefikkeymate.Config
 }
 
 func NewEtcdManager(cfg *traefikkeymate.Config) (KeymateConnector, error) {
@@ -26,12 +27,21 @@ func NewEtcdManager(cfg *traefikkeymate.Config) (KeymateConnector, error) {
 		return nil, fmt.Errorf("failed to connect to etcd: %v", err)
 	}
 
+	// Validate that the default fields are set in the configuraiton
+	if cfg.Traefik.DefaultEntrypoint == "" {
+		return nil, fmt.Errorf("defautl entrypoint cannot be empty")
+	}
+	if cfg.Traefik.DefaultPrefix == "" {
+		return nil, fmt.Errorf("default prefix cannot be empty")
+	}
+
 	return &EtcdKeymateManager{
 		client: client,
+		cfg:    cfg,
 	}, nil
 }
 
-func validateTarget(target *traefikkeymate.Target) error {
+func (m *EtcdKeymateManager) validateTarget(target *traefikkeymate.Target) error {
 	// Name cannot be empty
 	if target.Name == "" {
 		return fmt.Errorf("target name cannot be empty")
@@ -39,7 +49,11 @@ func validateTarget(target *traefikkeymate.Target) error {
 
 	// Prefix cannot be empty
 	if target.Prefix == "" {
-		return fmt.Errorf("prefix for target named %s cannot be empty", target.Name)
+		target.Prefix = m.cfg.Traefik.DefaultPrefix
+	}
+
+	if target.Entrypoint == "" {
+		target.Entrypoint = m.cfg.Traefik.DefaultEntrypoint
 	}
 
 	// Rule cannot be empty
@@ -47,14 +61,24 @@ func validateTarget(target *traefikkeymate.Target) error {
 		return fmt.Errorf("prefix for target named %s cannot be empty", target.Name)
 	}
 
+	if target.Type == "" {
+		log.Warnf("target %s has an empty type, using http...", target.Name)
+		target.Type = "http"
+	}
+
 	return nil
 }
 
 func (m *EtcdKeymateManager) deleteTarget(ctx context.Context, target *traefikkeymate.Target) []error {
+	err := m.validateTarget(target)
+	if err != nil {
+		return []error{fmt.Errorf("invalid target: %v", err)}
+	}
+
 	keyPrefixes := []string{
-		fmt.Sprintf("%s/http/routers/%s", target.Prefix, target.Name),
-		fmt.Sprintf("%s/http/services/%s", target.Prefix, target.Name),
-		fmt.Sprintf("%s/http/middlewares/%s", target.Prefix, target.Name),
+		fmt.Sprintf("%s/%s/routers/%s", target.Prefix, target.Type, target.Name),
+		fmt.Sprintf("%s/%s/services/%s", target.Prefix, target.Type, target.Name),
+		fmt.Sprintf("%s/%s/middlewares/%s", target.Prefix, target.Type, target.Name),
 	}
 
 	var errs []error
@@ -73,14 +97,14 @@ func valuesForMiddlewares(target *traefikkeymate.Target, middlewares []*traefikk
 	var middlewareNames []string
 	for _, middleware := range middlewares {
 		for key, value := range middleware.Values {
-			keys[fmt.Sprintf("%s/http/middlewares/%s/%s/%s", target.Prefix, middleware.Name, middleware.Kind, key)] = value
+			keys[fmt.Sprintf("%s/%s/middlewares/%s/%s/%s", target.Prefix, target.Type, middleware.Name, middleware.Kind, key)] = value
 		}
 
 		middlewareNames = append(middlewareNames, middleware.Name)
 	}
 
 	if len(middlewareNames) > 0 {
-		keys[fmt.Sprintf("%s/http/routers/%s/middlewares", target.Prefix, target.Name)] = strings.Join(middlewareNames, ",")
+		keys[fmt.Sprintf("%s/%s/routers/%s/middlewares", target.Prefix, target.Type, target.Name)] = strings.Join(middlewareNames, ",")
 	}
 
 	return keys
@@ -88,25 +112,32 @@ func valuesForMiddlewares(target *traefikkeymate.Target, middlewares []*traefikk
 
 func (m *EtcdKeymateManager) writeTarget(ctx context.Context, target *traefikkeymate.Target) error {
 	keys := etcdKeyValue{
-		fmt.Sprintf("%s/http/routers/%s/entrypoints", target.Prefix, target.Name): target.Entrypoint,
-		fmt.Sprintf("%s/http/routers/%s/rule", target.Prefix, target.Name):        target.Rule,
-		fmt.Sprintf("%s/http/routers/%s/service", target.Prefix, target.Name):     target.Name,
+		fmt.Sprintf("%s/%s/routers/%s/entrypoints", target.Prefix, target.Type, target.Name): target.Entrypoint,
+		fmt.Sprintf("%s/%s/routers/%s/rule", target.Prefix, target.Type, target.Name):        target.Rule,
+		fmt.Sprintf("%s/%s/routers/%s/service", target.Prefix, target.Type, target.Name):     target.Name,
 	}
 
 	// Set loadbalancing between the endpoints
 	for id, url := range target.ServerURLs {
 		serverURL := url
 
-		// Check we have a scheme in the url to the server
-		if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-			log.Warnf("server URL for target %s doesn't have a scheme, adding http", target.Name)
-			serverURL = fmt.Sprintf("http://%s", url)
+		// Check we have a scheme in the url to the server with http routers
+		if target.Type == "http" {
+			if !strings.Contains(url, "//") {
+				log.Warnf("server URL for target %s doesn't have a scheme, adding %s", target.Type, target.Name)
+				serverURL = fmt.Sprintf("%s://%s", target.Type, url)
+			}
 		}
 
-		keys[fmt.Sprintf("%s/http/services/%s/loadbalancer/servers/%d/url", target.Prefix, target.Name, id)] = serverURL
+		suffix := "url"
+		if target.Type != "http" {
+			suffix = "address"
+		}
+
+		keys[fmt.Sprintf("%s/%s/services/%s/loadbalancer/servers/%d/%s", target.Prefix, target.Type, target.Name, id, suffix)] = serverURL
 	}
 
-	if target.TLS {
+	if target.TLS && target.Type == "http" {
 		keys[fmt.Sprintf("%s/http/routers/%s/tls", target.Prefix, target.Name)] = "true"
 	}
 
@@ -145,7 +176,7 @@ func (m *EtcdKeymateManager) ApplyConfig(ctx context.Context, cfg *traefikkeymat
 			target.Entrypoint = cfg.Traefik.DefaultEntrypoint
 		}
 
-		if err := validateTarget(target); err != nil {
+		if err := m.validateTarget(target); err != nil {
 			errs = append(errs, err)
 			continue
 		}

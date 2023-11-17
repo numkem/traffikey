@@ -13,6 +13,7 @@ let
     targets = (attrValues (mapAttrs (name: target: {
       inherit (target) entrypoint prefix rule tls;
       name = name;
+      type = target.routerType;
       urls = target.serverUrls;
       middlewares = (attrValues (mapAttrs (name: middleware: {
         name = name;
@@ -48,6 +49,14 @@ let
         type = types.listOf types.str;
         description = mdDoc ''
           Full URL to the target server including the scheme (http or https).
+        '';
+      };
+
+      routerType = mkOption {
+        type = types.enum [ "http" "tcp" "udp" ];
+        default = "http";
+        description = mkDoc ''
+          Type of traefik router for this target
         '';
       };
 

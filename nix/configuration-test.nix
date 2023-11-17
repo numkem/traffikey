@@ -6,6 +6,8 @@ let
         address: ":80"
       traefik:
         address: ":8080"
+      ssh:
+        address: ":2222"
 
     providers:
       etcd:
@@ -65,6 +67,12 @@ in {
     defaultEntrypoint = "web";
     defaultPrefix = "traefik";
     targets = {
+      "ssh" = {
+        serverUrls = [ "127.0.0.1:22" ];
+        routerType = "tcp";
+        rule = "HostSNI(`*`)";
+        entrypoint = "ssh";
+      };
       "path" = {
         rule = "Path(`/path/`)";
         serverUrls = [ "127.0.0.1:8181" ];

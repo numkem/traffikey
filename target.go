@@ -2,6 +2,7 @@ package traefikkeymate
 
 type Target struct {
 	Name        string        `json:"name"`
+	Type        string        `json:"type"`
 	ServerURLs  []string      `json:"urls"`
 	Entrypoint  string        `json:"entrypoint"`
 	Middlewares []*Middleware `json:"middlewares"`
