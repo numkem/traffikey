@@ -61,7 +61,7 @@ in {
     staticConfigFile = traefikConf;
   };
 
-  services.traefik-keymate = {
+  services.traffikey = {
     enable = true;
     etcdEndpoints = [ "http://127.0.0.1:2379" ];
     defaultEntrypoint = "web";
@@ -86,7 +86,7 @@ in {
     };
   };
 
-  systemd.services.traefik-keymate.requires = [ "etcd.service" ];
+  systemd.services.traffikey.requires = [ "etcd.service" ];
 
   users.users = {
     admin = {

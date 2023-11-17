@@ -1,4 +1,4 @@
-package traefikkeymate
+package traffikey
 
 type Middleware struct {
 	Name   string            `json:"name"`

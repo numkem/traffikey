@@ -9,17 +9,17 @@ import (
 	etcd "go.etcd.io/etcd/client/v3"
 	"golang.org/x/exp/maps"
 
-	traefikkeymate "github.com/numkem/traefik-keymate"
+	"github.com/numkem/traffikey"
 )
 
 type etcdKeyValue map[string]string
 
 type EtcdKeymateManager struct {
 	client *etcd.Client
-	cfg    *traefikkeymate.Config
+	cfg    *traffikey.Config
 }
 
-func NewEtcdManager(cfg *traefikkeymate.Config) (KeymateConnector, error) {
+func NewEtcdManager(cfg *traffikey.Config) (KeymateConnector, error) {
 	client, err := etcd.New(etcd.Config{
 		Endpoints: cfg.Etcd.Endpoints,
 	})
@@ -41,7 +41,7 @@ func NewEtcdManager(cfg *traefikkeymate.Config) (KeymateConnector, error) {
 	}, nil
 }
 
-func (m *EtcdKeymateManager) validateTarget(target *traefikkeymate.Target) error {
+func (m *EtcdKeymateManager) validateTarget(target *traffikey.Target) error {
 	// Name cannot be empty
 	if target.Name == "" {
 		return fmt.Errorf("target name cannot be empty")
@@ -69,7 +69,7 @@ func (m *EtcdKeymateManager) validateTarget(target *traefikkeymate.Target) error
 	return nil
 }
 
-func (m *EtcdKeymateManager) deleteTarget(ctx context.Context, target *traefikkeymate.Target) []error {
+func (m *EtcdKeymateManager) deleteTarget(ctx context.Context, target *traffikey.Target) []error {
 	err := m.validateTarget(target)
 	if err != nil {
 		return []error{fmt.Errorf("invalid target: %v", err)}
@@ -92,7 +92,7 @@ func (m *EtcdKeymateManager) deleteTarget(ctx context.Context, target *traefikke
 	return errs
 }
 
-func valuesForMiddlewares(target *traefikkeymate.Target, middlewares []*traefikkeymate.Middleware) etcdKeyValue {
+func valuesForMiddlewares(target *traffikey.Target, middlewares []*traffikey.Middleware) etcdKeyValue {
 	keys := make(etcdKeyValue)
 	var middlewareNames []string
 	for _, middleware := range middlewares {
@@ -110,7 +110,7 @@ func valuesForMiddlewares(target *traefikkeymate.Target, middlewares []*traefikk
 	return keys
 }
 
-func (m *EtcdKeymateManager) writeTarget(ctx context.Context, target *traefikkeymate.Target) error {
+func (m *EtcdKeymateManager) writeTarget(ctx context.Context, target *traffikey.Target) error {
 	keys := etcdKeyValue{
 		fmt.Sprintf("%s/%s/routers/%s/entrypoints", target.Prefix, target.Type, target.Name): target.Entrypoint,
 		fmt.Sprintf("%s/%s/routers/%s/rule", target.Prefix, target.Type, target.Name):        target.Rule,
@@ -159,7 +159,7 @@ func (m *EtcdKeymateManager) writeTarget(ctx context.Context, target *traefikkey
 	return nil
 }
 
-func (m *EtcdKeymateManager) ApplyConfig(ctx context.Context, cfg *traefikkeymate.Config) []error {
+func (m *EtcdKeymateManager) ApplyConfig(ctx context.Context, cfg *traffikey.Config) []error {
 	var errs []error
 
 	for _, target := range cfg.Targets {

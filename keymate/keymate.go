@@ -3,9 +3,9 @@ package keymate
 import (
 	"context"
 
-	traefikkeymate "github.com/numkem/traefik-keymate"
+	"github.com/numkem/traffikey"
 )
 
 type KeymateConnector interface {
-	ApplyConfig(ctx context.Context, cfg *traefikkeymate.Config) []error
+	ApplyConfig(ctx context.Context, cfg *traffikey.Config) []error
 }

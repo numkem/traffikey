@@ -1,4 +1,4 @@
-package traefikkeymate
+package traffikey
 
 type Target struct {
 	Name        string        `json:"name"`

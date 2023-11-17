@@ -1,4 +1,4 @@
-package traefikkeymate
+package traffikey
 
 import (
 	"encoding/json"

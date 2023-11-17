@@ -6,8 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	traefikkeymate "github.com/numkem/traefik-keymate"
-	"github.com/numkem/traefik-keymate/keymate"
+	traffikey "github.com/numkem/traffikey"
+	"github.com/numkem/traffikey/keymate"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -21,7 +21,7 @@ func main() {
 
 	log.Info("Traefik Keymate starting...")
 
-	cfg, err := traefikkeymate.NewConfig(*configFilename)
+	cfg, err := traffikey.NewConfig(*configFilename)
 	if err != nil {
 		log.Fatalf("Failed to read configuraiton: %v", err)
 	}

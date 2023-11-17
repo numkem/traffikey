@@ -1,4 +1,4 @@
-module github.com/numkem/traefik-keymate
+module github.com/numkem/traffikey
 
 go 1.21
 

@@ -2,7 +2,7 @@
 
 with lib;
 let
-  cfg = config.services.traefik-keymate;
+  cfg = config.services.traffikey;
 
   settings = {
     etcd.endpoints = cfg.etcdEndpoints;
@@ -23,7 +23,7 @@ let
   };
 
   settingsFormat = pkgs.formats.json { };
-  serverConfigFile = settingsFormat.generate "traefik-keymate.json" settings;
+  serverConfigFile = settingsFormat.generate "traffikey.json" settings;
 
   middlewareOptions = { ... }: {
     options = {
@@ -102,9 +102,9 @@ let
     };
   };
 in {
-  options.services.traefik-keymate = {
+  options.services.traffikey = {
     enable = mkEnableOption ''
-      Enable the traefik-keymate service.
+      Enable the traffikey service.
 
       It will parse it's configuration than write the proper required keys to etcd
     '';
@@ -119,7 +119,7 @@ in {
       type = types.attrsOf (types.submodule targetOptions);
       default = { };
       description = mdDoc ''
-        Configuration for the traefik-keymate service.
+        Configuration for the traffikey service.
       '';
     };
 
@@ -141,13 +141,13 @@ in {
   };
 
   config = mkIf cfg.enable {
-    systemd.services.traefik-keymate = {
+    systemd.services.traffikey = {
       description = "Traefik keymate service";
       restartIfChanged = true;
       serviceConfig.Type = "oneshot";
 
       script = ''
-        ${pkgs.traefik-keymate}/bin/traefik-keymate -config ${serverConfigFile}
+        ${pkgs.traffikey}/bin/traffikey -config ${serverConfigFile}
       '';
 
       wantedBy = [ "multi-user.target" ];

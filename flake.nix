@@ -1,5 +1,6 @@
 {
-  description = "Tool to write the keys for exposing traefik service";
+  description =
+    "Set of services to manage traefik configuration with key/value stores";
 
   inputs = { nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable"; };
 
@@ -13,8 +14,8 @@
       packages = forAllSystems (system:
         let pkgs = nixpkgsFor.${system};
         in rec {
-          traefik-keymate = pkgs.buildGoModule {
-            pname = "traefik-keymate";
+          traffikey = pkgs.buildGoModule {
+            pname = "traffikey";
             version = "0.2.0";
 
             src = ./.;
@@ -24,11 +25,11 @@
             vendorHash = "sha256-9ksyoevxfieIZJE8EVdgTloEHf5HX0A2MqF+ZAvUc1U=";
 
             postInstall = ''
-              mv $out/bin/server $out/bin/traefik-keymate
+              mv $out/bin/server $out/bin/traffikey
             '';
           };
 
-          default = traefik-keymate;
+          default = traffikey;
         });
 
       devShells = forAllSystems (system:
@@ -41,8 +42,7 @@
       overlays = forAllSystems (system:
         let pkgs = nixpkgsFor.${system};
         in {
-          default =
-            (final: prev: { inherit (packages.${system}) traefik-keymate; });
+          default = (final: prev: { inherit (packages.${system}) traffikey; });
         });
 
       nixosConfigurations.test = let system = "x86_64-linux";
