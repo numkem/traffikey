@@ -29,6 +29,24 @@
             '';
           };
 
+          dockerImage = pkgs.dockerTools.buildImage {
+            name = "traffikey";
+            tag = "latest";
+
+            copyToRoot = pkgs.buildEnv {
+              name = "image-root";
+              paths = [ traffikey ];
+              pathsToLink = [ "/bin" ];
+            };
+
+            config = {
+              Cmd = [ "/bin/traffikey" ];
+            };
+          
+            diskSize = 1024;
+            buildVMMemorySize = 512;
+          };
+
           default = traffikey;
         });
 
