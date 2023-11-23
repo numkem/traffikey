@@ -147,7 +147,7 @@ in {
       serviceConfig.Type = "oneshot";
 
       script = ''
-        ${pkgs.traffikey}/bin/traffikey -config ${serverConfigFile}
+        ${pkgs.traffikey}/bin/traffikey apply --config ${serverConfigFile}
       '';
 
       wantedBy = [ "multi-user.target" ];

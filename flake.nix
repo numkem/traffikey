@@ -39,10 +39,8 @@
               pathsToLink = [ "/bin" ];
             };
 
-            config = {
-              Cmd = [ "/bin/traffikey" ];
-            };
-          
+            config = { Cmd = [ "/bin/traffikey" ]; };
+
             diskSize = 1024;
             buildVMMemorySize = 512;
           };
@@ -53,8 +51,9 @@
       devShells = forAllSystems (system:
         let pkgs = nixpkgsFor.${system};
         in {
-          default =
-            pkgs.mkShell { buildInputs = with pkgs; [ etcd go gopls ]; };
+          default = pkgs.mkShell {
+            buildInputs = with pkgs; [ etcd go gopls gotools ];
+          };
         });
 
       overlays = forAllSystems (system:
