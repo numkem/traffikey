@@ -22,7 +22,7 @@
 
             submodules = [ "server" ];
 
-            vendorHash = "sha256-9ksyoevxfieIZJE8EVdgTloEHf5HX0A2MqF+ZAvUc1U=";
+            vendorHash = "sha256-DPe2Nm4X3vUNuTJ5N7bxjts1qJFFvHGN9iPRfdTC11k=";
 
             postInstall = ''
               mv $out/bin/server $out/bin/traffikey
