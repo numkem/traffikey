@@ -19,6 +19,7 @@ let
         name = name;
         inherit (middleware) kind values;
       }) target.middlewares));
+      tls_extra_keys = target.tlsExtraKeys;
     }) cfg.targets));
   };
 
@@ -97,6 +98,14 @@ let
         default = false;
         description = mdDoc ''
           Use the TLS cert associated to the entrypoint or not.
+        '';
+      };
+
+      tlsExtraKeys = mkOption {
+        type = types.attrsOf (types.str);
+        default = { };
+        description = mdDoc ''
+          Extra keys to add to the TLS configuration on the router
         '';
       };
     };

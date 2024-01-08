@@ -4,6 +4,8 @@ let
     entryPoints:
       web:
         address: ":80"
+      websecure:
+        address: ":443"
       traefik:
         address: ":8080"
       ssh:
@@ -82,6 +84,13 @@ in {
             values.prefixes = "/path";
           };
         };
+      };
+      "pathssl" = {
+        rule = "Host(`secure.website`)";
+        entrypoint = "websecure";
+        serverUrls = [ "127.0.0.1:8181" ];
+        tls = true;
+        tlsExtraKeys = { certresolver = "myresolver"; };
       };
     };
   };

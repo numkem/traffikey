@@ -138,7 +138,12 @@ func (m *EtcdKeymateManager) writeTarget(ctx context.Context, target *traffikey.
 	}
 
 	if target.TLS && target.Type == "http" {
-		keys[fmt.Sprintf("%s/http/routers/%s/tls", target.Prefix, target.Name)] = "true"
+		tlsKey := fmt.Sprintf("%s/http/routers/%s/tls", target.Prefix, target.Name)
+		keys[tlsKey] = "true"
+
+		for key, value := range target.TLSExtraKeys {
+			keys[fmt.Sprintf("%s/%s", tlsKey, key)] = value
+		}
 	}
 
 	// Apply all the middlewares
