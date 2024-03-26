@@ -29,7 +29,7 @@ func NewEtcdManager(cfg *traffikey.Config) (KeymateConnector, error) {
 		return nil, fmt.Errorf("failed to connect to etcd: %v", err)
 	}
 
-	// Validate that the default fields are set in the configuraiton
+	// Validate that the default fields are set in the configuration
 	if cfg.Traefik.DefaultEntrypoint == "" {
 		return nil, fmt.Errorf("defautl entrypoint cannot be empty")
 	}
