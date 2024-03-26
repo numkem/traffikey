@@ -38,5 +38,16 @@ func NewConfig(filename string) (*Config, error) {
 		return nil, fmt.Errorf("failed to decode JSON: %v", err)
 	}
 
+	// Make are all parts of the config aren't nil
+	if cfg.Etcd == nil {
+		cfg.Etcd = new(etcdConfig)
+	}
+	if cfg.Targets == nil {
+		cfg.Targets = []*Target{}
+	}
+	if cfg.Traefik == nil {
+		cfg.Traefik = new(traefikConfig)
+	}
+
 	return cfg, nil
 }

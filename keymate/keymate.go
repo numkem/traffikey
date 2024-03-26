@@ -8,4 +8,5 @@ import (
 
 type KeymateConnector interface {
 	ApplyConfig(ctx context.Context, cfg *traffikey.Config) []error
+	ListTargets(ctx context.Context, cfg *traffikey.Config) ([]*traffikey.Target, error)
 }
