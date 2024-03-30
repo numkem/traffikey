@@ -208,7 +208,7 @@ func (m *EtcdKeymateManager) middlewaresForRouter(ctx context.Context, routerNam
 
 	var middlewareNames []string
 	if resp != nil && len(resp.Kvs) > 0 {
-		middlewareNames = strings.Split(resp.Kvs[0].String(), ",")
+		middlewareNames = strings.Split(string(resp.Kvs[0].Value), ",")
 	}
 
 	// For each middleware, fetch it's config

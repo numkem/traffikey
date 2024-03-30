@@ -13,17 +13,19 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "searches through kv store and list a kind",
+	Short: "lists all targets for a prefix",
 	Run:   listCmdRun,
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
+	listCmd.PersistentFlags().StringP("prefix", "p", keymate.TRAEFIK_DEFAULT_PREFIX, "etcd key prefix")
 }
 
 // Take the argument from the command and look through matching keys in etcd
 func listCmdRun(cmd *cobra.Command, args []string) {
 	configFilename := cmd.Flag("config").Value.String()
+	prefix := cmd.Flag("prefix").Value.String()
 
 	cfg, err := traffikey.NewConfig(configFilename)
 	if err != nil {
@@ -40,6 +42,8 @@ func listCmdRun(cmd *cobra.Command, args []string) {
 	t.SetStyle(table.StyleLight)
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Name", "Entrypoint", "Middleware", "Prefix", "Rule", "TLS"})
+
+	cfg.Traefik.DefaultPrefix = prefix
 
 	targets, err := mgr.ListTargets(cmd.Context(), cfg)
 	for _, target := range targets {
