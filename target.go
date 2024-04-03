@@ -10,4 +10,5 @@ type Target struct {
 	Rule         string            `json:"rule"`
 	TLS          bool              `json:"tls"`
 	TLSExtraKeys map[string]string `json:"tls_extra_keys"`
+	Monitored    bool              `json:"monitored"`
 }

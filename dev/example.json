@@ -9,12 +9,13 @@
   "targets": [
     {
       "name": "test",
-      "urls": [
-        "http://192.168.0.104:8080"
-      ],
+      "urls": ["http://192.168.0.104:8080"],
       "entrypoint": "web",
       "prefix": "traefik",
       "rule": "test.numkem.org"
     }
-  ]
+  ],
+  "traefik": {
+    "default_entrypoint": "web"
+  }
 }

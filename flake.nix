@@ -16,13 +16,13 @@
         in rec {
           traffikey = pkgs.buildGoModule {
             pname = "traffikey";
-            version = "0.2.0";
+            version = "0.2.1";
 
             src = ./.;
 
             submodules = [ "server" ];
 
-            vendorHash = "sha256-DPe2Nm4X3vUNuTJ5N7bxjts1qJFFvHGN9iPRfdTC11k=";
+            vendorHash = "sha256-r4AyYGg5F7cGs1Nk/hL+uZJBqNrV/QNUOs8qQDEjG8A=";
 
             postInstall = ''
               mv $out/bin/server $out/bin/traffikey
