@@ -1,3 +1,10 @@
+ _____            __  __ _ _              
+/__   \_ __ __ _ / _|/ _(_) | _____ _   _ 
+  / /\/ '__/ _` | |_| |_| | |/ / _ \ | | |
+ / /  | | | (_| |  _|  _| |   <  __/ |_| |
+ \/   |_|  \__,_|_| |_| |_|_|\_\___|\__, |
+                                    |___/ 
+
 # Traffikey
 
 While being a single binary so far, Traffikey is meant to be a suite of software aimed at helping manage keys values inserted into a store (currently etcd) for dynamically configuring Traefik.
