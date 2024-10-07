@@ -2,7 +2,9 @@ package keymate
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -10,6 +12,10 @@ import (
 	"golang.org/x/exp/maps"
 
 	"github.com/numkem/traffikey"
+)
+
+const (
+	ETCD_CONFIG_PREFIX = "traefik/config"
 )
 
 type etcdKeyValue map[string]string
@@ -189,6 +195,8 @@ func (m *EtcdKeymateManager) ApplyConfig(ctx context.Context, cfg *traffikey.Con
 			continue
 		}
 
+		log.WithField("target", target.Name).Debug("adding new target")
+
 		err := m.writeTarget(ctx, target)
 		if err != nil {
 			errs = append(errs, err)
@@ -330,4 +338,82 @@ func (m *EtcdKeymateManager) ListTargets(ctx context.Context, cfg *traffikey.Con
 	}
 
 	return values, nil
+}
+
+func (m *EtcdKeymateManager) ListTargetsByOwner(ctx context.Context, owner string) ([]*traffikey.Target, error) {
+	resp, err := m.client.Get(ctx, fmt.Sprintf("%s/%s", ETCD_CONFIG_PREFIX, owner))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get targets from etcd: %v", err)
+	}
+
+	if len(resp.Kvs) == 0 {
+		return nil, nil
+	}
+
+	cfg := new(traffikey.Config)
+	err = json.Unmarshal(resp.Kvs[0].Value, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %v", err)
+	}
+
+	return nil, nil
+}
+
+func (m *EtcdKeymateManager) DeleteTargetByName(ctx context.Context, target string, prefix string) error {
+	log.WithField("target", prefix).Debug("deleting removed target")
+
+	_, err := m.client.Delete(ctx, fmt.Sprintf("%s/http/routers/%s", prefix, target), etcd.WithPrefix())
+	if err != nil {
+		return fmt.Errorf("failed to delete router keys: %v", err)
+	}
+
+	_, err = m.client.Delete(ctx, fmt.Sprintf("%s/http/services/%s", prefix, target), etcd.WithPrefix())
+	if err != nil {
+		return fmt.Errorf("failed to delete service keys: %v", err)
+	}
+
+	return nil
+}
+
+func (m *EtcdKeymateManager) GetState(ctx context.Context) (*traffikey.Config, error) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get hostname: %v", err)
+	}
+
+	resp, err := m.client.Get(ctx, fmt.Sprintf("%s/%s", ETCD_CONFIG_PREFIX, hostname))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get etcd state: %v", err)
+	}
+
+	if len(resp.Kvs) == 0 {
+		return nil, nil
+	}
+
+	cfg := new(traffikey.Config)
+	err = json.Unmarshal(resp.Kvs[0].Value, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal previous config: %v", err)
+	}
+
+	return cfg, nil
+}
+
+func (m *EtcdKeymateManager) SaveState(ctx context.Context, cfg *traffikey.Config) error {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("failed to get hostname: %v", err)
+	}
+
+	j, err := json.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %v", err)
+	}
+
+	_, err = m.client.Put(ctx, fmt.Sprintf("%s/%s", ETCD_CONFIG_PREFIX, hostname), string(j))
+	if err != nil {
+		return fmt.Errorf("failed to save etcd state: %v", err)
+	}
+
+	return nil
 }
