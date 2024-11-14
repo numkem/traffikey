@@ -79,15 +79,9 @@
         }
       );
 
-      overlays = forAllSystems (
-        system:
-        let
-          pkgs = nixpkgsFor.${system};
-        in
-        {
-          default = (final: prev: { inherit (packages.${system}) traffikey; });
-        }
-      );
+      overlays = forAllSystems (system: {
+        default = (final: prev: { inherit (packages.${system}) traffikey; });
+      });
 
       nixosConfigurations.test =
         let
