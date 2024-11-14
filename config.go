@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -23,6 +25,8 @@ type traefikConfig struct {
 }
 
 func NewConfig(filename string) (*Config, error) {
+	log.WithField("filename", filename).Debugf("reading configuration file")
+
 	f, err := os.Open(filename)
 	if err != nil {
 		if os.IsNotExist(err) {

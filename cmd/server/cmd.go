@@ -1,6 +1,11 @@
 package main
 
-import "github.com/spf13/cobra"
+import (
+	"os"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+)
 
 var (
 	rootCmd = &cobra.Command{
@@ -10,6 +15,11 @@ var (
 )
 
 func init() {
+	if os.Getenv("DEBUG") != "" {
+		log.Info("debug level set")
+		log.SetLevel(log.DebugLevel)
+	}
+
 	rootCmd.PersistentFlags().StringP("config", "c", "traffikey.json", "json configuration filename")
 }
 

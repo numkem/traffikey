@@ -1,21 +1,29 @@
 {
   "etcd": {
-    "endpoints": [
-      "http://172.31.99.4:2379",
-      "http://172.31.99.5:2379",
-      "http://172.31.99.3:2769"
-    ]
+    "endpoints": ["http://127.0.0.1:2379"]
   },
   "targets": [
     {
-      "name": "test",
-      "urls": ["http://192.168.0.104:8080"],
+      "name": "forge",
+      "urls": ["http://192.168.0.7:8080"],
       "entrypoint": "web",
       "prefix": "traefik",
-      "rule": "test.numkem.org"
+      "rule": "test.numkem.org",
+      "type": "http",
+      "monitored": true
+    },
+    {
+      "name": "pylon",
+      "urls": ["http://192.168.0.2:8080"],
+      "entrypoint": "web",
+      "prefix": "traefik",
+      "rule": "test.numkem.org",
+      "type": "http",
+      "monitored": true
     }
   ],
   "traefik": {
-    "default_entrypoint": "web"
+    "default_entrypoint": "web",
+    "default_prefix": "traefik"
   }
 }
