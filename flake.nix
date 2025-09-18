@@ -3,10 +3,11 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixos-generators.url = "github:nix-community/nixos-generators";
   };
 
   outputs =
-    { nixpkgs, ... }:
+    { self, nixpkgs, nixos-generators, ... }:
     let
       supportedSystems = [
         "x86_64-linux"
@@ -22,7 +23,7 @@
         let
           pkgs = nixpkgsFor.${system};
         in
-        rec {
+        {
           traffikey = pkgs.buildGoModule {
             pname = "traffikey";
             version = "0.4.0";
@@ -46,7 +47,7 @@
 
             copyToRoot = pkgs.buildEnv {
               name = "image-root";
-              paths = [ traffikey ];
+              paths = [ self.packages.${system}.traffikey ];
               pathsToLink = [ "/bin" ];
             };
 
@@ -58,7 +59,20 @@
             buildVMMemorySize = 512;
           };
 
-          default = traffikey;
+          testVM = nixos-generators.nixosGenerate {
+            inherit system;
+            modules = [
+              nixosModules.default
+              ./nix/configuration-test.nix
+              {
+                nixpkgs.overlays = [ overlays.default ];
+              }
+            ];
+
+            format = "vm";
+          };
+
+          default = self.packages.${system}.traffikey;
         }
       );
 
@@ -79,25 +93,11 @@
         }
       );
 
-      overlays = forAllSystems (system: {
-        default = (final: prev: { inherit (packages.${system}) traffikey; });
-      });
-
-      nixosConfigurations.test =
-        let
-          system = "x86_64-linux";
-        in
-        nixpkgs.lib.nixosSystem rec {
-          inherit system;
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ overlays.${system}.default ];
-          };
-          modules = [
-            nixosModules.default
-            ./nix/configuration-test.nix
-          ];
-        };
+      overlays.default = (
+        final: prev: {
+          inherit (packages.${final.system}) traffikey;
+        }
+      );
 
       nixosModules.default = import ./nix/modules/default.nix;
     };

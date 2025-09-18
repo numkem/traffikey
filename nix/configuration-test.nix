@@ -32,19 +32,23 @@ let
     '';
   };
 in {
-  networking.firewall.allowedTCPPorts = [ 22 ];
   environment.systemPackages = with pkgs; [ etcd ];
 
+  networking.firewall.enable = false;
+
+  # TCP service
   services.openssh = {
     enable = true;
     settings.PasswordAuthentication = true;
   };
 
+  # Backend
   services.etcd = {
     enable = true;
     listenClientUrls = [ "http://127.0.0.1:2379" ];
   };
 
+  # HTTP service
   services.nginx = {
     enable = true;
     defaultHTTPListenPort = 8181;
